@@ -256,9 +256,8 @@ public class CartFragment extends Fragment {
             Product cartProduct = cartProducts.remove(position);
 
             // Update price
-            int newPrice = (int) (Double.parseDouble((totalAmountTextView.getText().toString()).replaceAll("[^\\d.]", "")) - cartProduct.getPrice() * ResourcesSingleton.getInstance().getCart()[cartProduct.getId()]);
+            int newPrice = Integer.parseInt(totalAmountTextView.getText().toString()) - cartProduct.getPrice() * ResourcesSingleton.getInstance().getCart()[cartProduct.getId()];
 
-            // Remove from database
             ResourcesSingleton.getInstance().removeProduct(cartProduct.getId());
 
             totalAmountTextView.setText(Integer.toString(newPrice));
