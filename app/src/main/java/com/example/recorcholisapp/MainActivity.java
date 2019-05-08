@@ -108,16 +108,16 @@ public class MainActivity extends AppCompatActivity {
         viewPagerEnTabLayout();
 
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        /*if (mNfcAdapter == null)
+        if (mNfcAdapter == null)
         {
             Toast.makeText(this,
                     "Su dispositivo no soporta NFC. No se puede correr la aplicación.",
                     Toast.LENGTH_LONG).show();
             finish();
             return;
-        }*/
+        }
 
-        //checkNfcEnabled();
+        checkNfcEnabled();
 
         mNfcPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this,
                 getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
@@ -403,11 +403,11 @@ public class MainActivity extends AppCompatActivity {
     {
         super.onResume();
 
-        //checkNfcEnabled();
+        checkNfcEnabled();
 
         Log.d(TAG, "onResume: " + getIntent());
 
-        //mNfcAdapter.enableForegroundDispatch(this, mNfcPendingIntent, mReadWriteTagFilters, mTechList);
+        mNfcAdapter.enableForegroundDispatch(this, mNfcPendingIntent, mReadWriteTagFilters, mTechList);
     }
 
     @Override
@@ -435,7 +435,7 @@ public class MainActivity extends AppCompatActivity {
     {
         super.onPause();
         Log.d(TAG, "onPause: " + getIntent());
-        //mNfcAdapter.disableForegroundDispatch(this);
+        mNfcAdapter.disableForegroundDispatch(this);
 
     }
 
@@ -482,7 +482,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    /*private void checkNfcEnabled()
+    private void checkNfcEnabled()
     {
         Boolean nfcEnabled = mNfcAdapter.isEnabled();
         if (!nfcEnabled)
@@ -495,7 +495,7 @@ public class MainActivity extends AppCompatActivity {
                             (dialog, id) -> startActivity(new Intent(
                                     android.provider.Settings.ACTION_WIRELESS_SETTINGS))).create().show();
         }
-    }*/
+    }
 
     public static String getHexString(byte[] b, int length)
     {
