@@ -2,12 +2,19 @@ package com.example.recorcholisapp;
 
 
 import android.app.Activity;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
+import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.squareup.picasso.Picasso;
 
 
 public class ProductDescriptionActivity extends Activity {
@@ -19,6 +26,7 @@ public class ProductDescriptionActivity extends Activity {
 
     private Product product;
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,7 +35,14 @@ public class ProductDescriptionActivity extends Activity {
         product = getIntent().getParcelableExtra(PRODUCT_INTENT_KEY);
 
         TextView productName = findViewById(R.id.product_name);
+        CollapsingToolbarLayout productNameB = findViewById(R.id.collapsing);
         productName.setText(product.getName());
+        productNameB.setExpandedTitleTextAppearance(R.style.ExpandedAppbar);
+        productNameB.setCollapsedTitleTextAppearance(R.style.CollapsedAppbar);
+        productNameB.setTitle(product.getName());
+
+        ImageView productImage = findViewById(R.id.img_product);
+        Picasso.with(getBaseContext()).load(product.getPhoto()).into(productImage);
 
         TextView productDescription = findViewById(R.id.product_description);
         productDescription.setText(product.getDescription());
@@ -52,7 +67,7 @@ public class ProductDescriptionActivity extends Activity {
             }
         });
 
-        Button buttonAddToCart = findViewById(R.id.button_add_to_cart);
+        FloatingActionButton buttonAddToCart = findViewById(R.id.button_add_to_cart);
         buttonAddToCart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
