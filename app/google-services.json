@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1014398951122",
+    "firebase_url": "https://recorcholisapp-edc0a.firebaseio.com",
+    "project_id": "recorcholisapp-edc0a",
+    "storage_bucket": "recorcholisapp-edc0a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1014398951122:android:d705d1a35b8a40fe",
+        "android_client_info": {
+          "package_name": "com.example.recorcholisapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1014398951122-ojc453avd0ds4ed2m7rtm2mj6ktllgbg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.recorcholisapp",
+            "certificate_hash": "5d54767180099a794fb7243d39b4d2959e8af8d8"
+          }
+        },
+        {
+          "client_id": "1014398951122-1kcq5l7u30642l0gtcidl5ccd5fvgvbi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNIkUV7iF-ICALq-EWd3GDfah91fBj2EM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1014398951122-1kcq5l7u30642l0gtcidl5ccd5fvgvbi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
