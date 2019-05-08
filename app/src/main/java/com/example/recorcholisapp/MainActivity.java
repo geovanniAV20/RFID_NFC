@@ -1,8 +1,8 @@
 package com.example.recorcholisapp;
 
 
-import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.PendingIntent;
@@ -18,13 +18,10 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.app.Fragment;
-
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -89,44 +86,10 @@ public class MainActivity extends AppCompatActivity {
     public int id;
 
 
-    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-            = item -> {
-                switch (item.getItemId()) {
-                    case R.id.navigation_menu:
-                        FragmentManager fragmentManager = getFragmentManager();
-                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                        fragmentTransaction.replace(R.id.main_fragment, new MenuListFragment());
-                        fragmentTransaction.commit();
-
-                        return true;
-                    case R.id.navigation_cart:
-                        fragmentManager = getFragmentManager();
-                        fragmentTransaction = fragmentManager.beginTransaction();
-                        if(MainActivity.this.cartFragment == null) {
-                            MainActivity.this.cartFragment = new CartFragment();
-                        }
-                        fragmentTransaction.replace(R.id.main_fragment,MainActivity.this.cartFragment );
-                        fragmentTransaction.commit();
-                        return true;
-
-
-                    case R.id.navigation_admin:
-                        fragmentManager = getFragmentManager();
-                        fragmentTransaction = fragmentManager.beginTransaction();
-                        fragmentTransaction.replace(R.id.main_fragment, new AdminFragment());
-                        fragmentTransaction.commit();
-                        return true;
-                }
-                return false;
-            };
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //BottomNavigationView navigation = findViewById(R.id.navigation);
-        //navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -236,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     else {
                         Toast.makeText(this,
-                                "Primero debes de auntenticar el tag!",
+                                "Primero necesitas auntenticar el tag!",
                                 Toast.LENGTH_LONG).show();
                         mfc.close();
                         return;
@@ -254,13 +217,13 @@ public class MainActivity extends AppCompatActivity {
                         mTagDialog.cancel();
 
                         if(cartFragment != null) {
-                            cartFragment.currentMoneyText.setText(String.format("$%d",Integer.parseInt(hexToDecimal(blockread))));
+                            cartFragment.currentMoneyText.setText(Integer.toString(Integer.parseInt(hexToDecimal(blockread))));
                         }
 
                         AlertDialog.Builder builder = new AlertDialog.Builder(
                                 this)
                                 .setTitle("Saldo")
-                                .setMessage("El saldo de esta tarjeta es: " + hexToDecimal(blockread))
+                                .setMessage("Los tickets en esta tarjeta son: " + hexToDecimal(blockread))
                                 .setCancelable(true)
                                 .setNegativeButton("Cancelar",
                                         (dialog, id) -> dialog.cancel())
@@ -271,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
                         mTagDialog.show();
                     }else{
                         Toast.makeText(this,
-                                "Lectura de bloque FALLIDA dado autentificación fallida.",
+                                "FALLO en lectura de Bloque debido a autentificación fallida.",
                                 Toast.LENGTH_LONG).show();
                     }
                     mfc.close();
@@ -325,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else {
                     Toast.makeText(this,
-                            "Primero debes de auntenticar el tag!",
+                            "Necesitas auntenticar el tag!",
                             Toast.LENGTH_LONG).show();
                     mfc.close();
                     return;
@@ -373,7 +336,7 @@ public class MainActivity extends AppCompatActivity {
 
                 }else{
                     Toast.makeText(this,
-                            "Escritura a bloque FALLIDA dado autentificación fallida.",
+                            "FALLO en escritura de Bloque debido a autentificación fallida.",
                             Toast.LENGTH_LONG).show();
                 }
 
@@ -643,7 +606,7 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(
                 MainActivity.this)
                 .setTitle("Listo para cambiar las llaves!")
-                .setMessage("Acerque el Tag de monedero para cambiar a las nuevas llaves de auntenticacion")
+                .setMessage("Acerque el Tag para cambiar a las nuevas llaves de auntenticacion")
                 .setCancelable(true)
                 .setNegativeButton("Cancelar",
                         (dialog, id) -> dialog.cancel())
@@ -689,9 +652,6 @@ public class MainActivity extends AppCompatActivity {
     private void viewPagerEnTabLayout(){
         adapter = new ViewPagerAdapter(getFragmentManager(), arrayFragments, arrayTitulos);
         vpContenido.setAdapter(adapter);
-
-        //tabLayout.setupWithViewPager(vpContenido);
-
     }
 
 }

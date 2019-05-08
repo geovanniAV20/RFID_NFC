@@ -9,8 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-import android.widget.Toolbar;
-
 
 import java.util.ArrayList;
 
@@ -19,7 +17,7 @@ public class MenuListFragment extends ListFragment {
 
     private ProductAdapter productArrayAdapter;
 
-    private ArrayList<Product> commonFood = new ArrayList<Product>();
+    private ArrayList<Product> commonProducts = new ArrayList<Product>();
 
     public MenuListFragment() {
         // Required empty public constructor
@@ -36,10 +34,10 @@ public class MenuListFragment extends ListFragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        this.commonFood = ResourcesSingleton.getInstance().getCommonFood();
-        productArrayAdapter = new ProductAdapter(this.getActivity(), R.layout.fragment_menu_list, new ArrayList<Product>());
+        this.commonProducts = ResourcesSingleton.getInstance().getCommonFood();
+        productArrayAdapter = new ProductAdapter(this.getActivity(), R.layout.fragment_menu_list, new ArrayList<>());
         setListAdapter(productArrayAdapter);
-        for (Product p: commonFood) {
+        for (Product p: commonProducts) {
             productArrayAdapter.add(p);
         }
         productArrayAdapter.notifyDataSetChanged();
@@ -48,7 +46,7 @@ public class MenuListFragment extends ListFragment {
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         Intent i = new Intent(getActivity(), ProductDescriptionActivity.class);
-        i.putExtra(ProductDescriptionActivity.PRODUCT_INTENT_KEY, this.commonFood.get(position));
+        i.putExtra(ProductDescriptionActivity.PRODUCT_INTENT_KEY, this.commonProducts.get(position));
         startActivity(i);
     }
 }

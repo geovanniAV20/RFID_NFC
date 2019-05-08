@@ -118,7 +118,7 @@
                     android:layout_marginLeft="8dp"
                     android:layout_marginRight="8dp"
                     android:shadowColor="@android:color/black"
-                    android:text="Pagar"
+                    android:text="Canjear"
                     android:textColor="@android:color/black"
                     android:background="@android:color/white"/>
 

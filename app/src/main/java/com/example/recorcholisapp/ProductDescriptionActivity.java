@@ -7,9 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -53,53 +51,31 @@ public class ProductDescriptionActivity extends Activity {
         textProductQuantityCounter = findViewById(R.id.text_product_quantity_counter);
 
         ImageView imageProductRemove = findViewById(R.id.image_product_remove);
-        imageProductRemove.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                removeProductPrice();
-            }
-        });
+        imageProductRemove.setOnClickListener(v -> removeProductPrice());
         ImageView imageProductAdd = findViewById(R.id.image_product_add);
-        imageProductAdd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                addProductPrice();
-            }
-        });
+        imageProductAdd.setOnClickListener(v -> addProductPrice());
 
         FloatingActionButton buttonAddToCart = findViewById(R.id.button_add_to_cart);
-        buttonAddToCart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                addProductToCart();
-            }
-        });
+        buttonAddToCart.setOnClickListener(v -> addProductToCart());
     }
 
     private void removeProductPrice(){
         int quantity = Integer.parseInt(textProductQuantityCounter.getText().toString()) - 1;
         if (quantity > 0) {
-            double newPrice = quantity * product.getPrice();
+            int newPrice = quantity * product.getPrice();
             textProductQuantityCounter.setText(String.valueOf(quantity));
-            textProductPrice.setText(String.format("$%.2f", newPrice));
+            textProductPrice.setText(Integer.toString(newPrice));
         }
     }
 
     private void addProductPrice(){
         int quantity = Integer.parseInt(textProductQuantityCounter.getText().toString()) + 1;
-        double newPrice = quantity * product.getPrice();
+        int newPrice = quantity * product.getPrice();
         textProductQuantityCounter.setText(String.valueOf(quantity));
-        textProductPrice.setText(String.format("$%.2f", newPrice));
+        textProductPrice.setText(String.valueOf(newPrice));
     }
 
     private void addProductToCart(){
-        /*db.addProduct(product.id, product.productType, product.name, product.description,
-                Integer.parseInt(textProductQuantityCounter.getText().toString()),
-                product.price,
-                textProductComments.getText().toString(),
-                InClubSingleton.getInstance().getClubId());
-        getActivity().onBackPressed();*/
-
         ResourcesSingleton.getInstance().addProduct(product.getId(), Integer.parseInt(textProductQuantityCounter.getText().toString()));
         Toast.makeText(this, "Se agregó al carrito", Toast.LENGTH_LONG).show();
         this.onBackPressed();

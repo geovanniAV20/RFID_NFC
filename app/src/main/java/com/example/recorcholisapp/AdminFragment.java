@@ -78,7 +78,7 @@ public class AdminFragment extends Fragment implements View.OnClickListener{
                 ((MainActivity)getActivity()).selectedKey= getCheckBox();
                 if(mDatatoWrite.getText().toString().equals("")){
                     Toast.makeText(getActivity(),
-                            "Introducir saldo a depositar!",
+                            "Introducir cantidad a depositar!",
                             Toast.LENGTH_LONG).show();
                 }else {
                     ((MainActivity) getActivity()).setDepositMoney(Integer.parseInt(mDatatoWrite.getText().toString()));

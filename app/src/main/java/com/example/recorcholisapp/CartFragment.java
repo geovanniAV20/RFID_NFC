@@ -80,54 +80,46 @@ public class CartFragment extends Fragment {
         totalAmountTextView = result.findViewById(R.id.text_cart_total_number);
 
         currentMoneyText = result.findViewById(R.id.text_cart_current_money_number);
-        currentMoneyText.setText(String.format("$%d", ((MainActivity) getActivity()).currentMoney));
+        currentMoneyText.setText(Integer.toString(((MainActivity) getActivity()).currentMoney));
 
         Button readMoneyButton = result.findViewById(R.id.button_cart_read_card);
-        readMoneyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ((MainActivity)getActivity()).onReadMoney(readMoneyButton);
-            }
-        });
+        readMoneyButton.setOnClickListener(view -> ((MainActivity)getActivity()).onReadMoney(readMoneyButton));
 
         Button payButton = result.findViewById(R.id.button_pay_cart_items);
-        payButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mCartAdapter != null && mCartAdapter.cartProducts.size() > 0) {
-                    LinkedList<Product> products = new LinkedList<>();
-                    double price = 0;
-                    for (int i = 1; i < ResourcesSingleton.getInstance().getCart().length; i++) {
-                        if(ResourcesSingleton.getInstance().getCart()[i] > 0) {
-                            products.add(ResourcesSingleton.getInstance().getProduct(i));
-                            price += ResourcesSingleton.getInstance().getProduct(i).getPrice() * ResourcesSingleton.getInstance().getCart()[i];
-                        }
+        payButton.setOnClickListener(v -> {
+            if (mCartAdapter != null && mCartAdapter.cartProducts.size() > 0) {
+                LinkedList<Product> products = new LinkedList<>();
+                int price = 0;
+                for (int i = 1; i < ResourcesSingleton.getInstance().getCart().length; i++) {
+                    if(ResourcesSingleton.getInstance().getCart()[i] > 0) {
+                        products.add(ResourcesSingleton.getInstance().getProduct(i));
+                        price += ResourcesSingleton.getInstance().getProduct(i).getPrice() * ResourcesSingleton.getInstance().getCart()[i];
                     }
+                }
 
-                    totalAmountTextView.setText(String.format("$%.2f", price));
-                    mCartAdapter = new CartAdapter(products);
-                    recyclerCart.setAdapter(mCartAdapter);
-                    if(price > ((MainActivity)(CartFragment.this.getActivity())).currentMoney) {
-                        if(((MainActivity)(CartFragment.this.getActivity())).currentMoney == 0){
-                            Toast.makeText(getActivity(), "No tienes saldo o vuelve a leer el monedero", Toast.LENGTH_LONG).show();
-                            saveUserInformation(container, updatedMoney);
-                        }else {
-                            Toast.makeText(getActivity(), "No tienes dinero suficiente para pagar", Toast.LENGTH_LONG).show();
-                            saveUserInformation(container, updatedMoney);
-                        }
-
-                    } else {
-                        //hacer cobro
-                        updatedMoney = ((MainActivity)(CartFragment.this.getActivity())).currentMoney - (int)price;
+                totalAmountTextView.setText(Integer.toString(price));
+                mCartAdapter = new CartAdapter(products);
+                recyclerCart.setAdapter(mCartAdapter);
+                if(price > ((MainActivity)(CartFragment.this.getActivity())).currentMoney) {
+                    if(((MainActivity)(CartFragment.this.getActivity())).currentMoney == 0){
+                        Toast.makeText(getActivity(), "No tienes tickets o intentalo de nuevo", Toast.LENGTH_LONG).show();
                         saveUserInformation(container, updatedMoney);
-                        int depositMoney = - (int)price;
-                        ((MainActivity)(CartFragment.this.getActivity())).setDepositMoney(depositMoney);
-                        ((MainActivity)(CartFragment.this.getActivity())).onDeposit(payButton);
+                    }else {
+                        Toast.makeText(getActivity(), "No tienes tickets suficientes", Toast.LENGTH_LONG).show();
+                        saveUserInformation(container, updatedMoney);
                     }
 
                 } else {
-                    Toast.makeText(getActivity(), "Necesitas ordernar al menos un producto", Toast.LENGTH_LONG).show();
+                    //hacer cobro
+                    updatedMoney = ((MainActivity)(CartFragment.this.getActivity())).currentMoney - (int)price;
+                    saveUserInformation(container, updatedMoney);
+                    int depositMoney = - (int)price;
+                    ((MainActivity)(CartFragment.this.getActivity())).setDepositMoney(depositMoney);
+                    ((MainActivity)(CartFragment.this.getActivity())).onDeposit(payButton);
                 }
+
+            } else {
+                Toast.makeText(getActivity(), "Necesitas canjear al menos un producto", Toast.LENGTH_LONG).show();
             }
         });
 
@@ -148,7 +140,7 @@ public class CartFragment extends Fragment {
         super.onResume();
         if (ResourcesSingleton.getInstance().getTotalQuantity() > 0) {
             LinkedList<Product> products = new LinkedList<>();
-            double price = 0;
+            int price = 0;
             for (int i = 1; i < ResourcesSingleton.getInstance().getCart().length; i++) {
                 if(ResourcesSingleton.getInstance().getCart()[i] > 0) {
                     products.add(ResourcesSingleton.getInstance().getProduct(i));
@@ -156,21 +148,21 @@ public class CartFragment extends Fragment {
                 }
             }
 
-            totalAmountTextView.setText(String.format("$%.2f", price));
+            totalAmountTextView.setText(Integer.toString(price));
             mCartAdapter = new CartAdapter(products);
             recyclerCart.setAdapter(mCartAdapter);
-            currentMoneyText.setText(String.format("$%d", ((MainActivity) getActivity()).currentMoney));
+            currentMoneyText.setText(Integer.toString(((MainActivity) getActivity()).currentMoney));
             initSwipe();
             hideInstructions();
         } else {
-            totalAmountTextView.setText("$0.00");
+            totalAmountTextView.setText("0");
             showInstructions();
         }
     }
 
     public void removeProducts() {
         if(mCartAdapter != null && recyclerCart != null) {
-            currentMoneyText.setText(String.format("$%d", updatedMoney));
+            currentMoneyText.setText(updatedMoney);
             mCartAdapter = new CartAdapter(new LinkedList<>());
             recyclerCart.setAdapter(mCartAdapter);
             showInstructions();
@@ -264,12 +256,12 @@ public class CartFragment extends Fragment {
             Product cartProduct = cartProducts.remove(position);
 
             // Update price
-            double newPrice = Double.parseDouble((totalAmountTextView.getText().toString()).replaceAll("[^\\d.]", "")) - cartProduct.getPrice() * ResourcesSingleton.getInstance().getCart()[cartProduct.getId()];
+            int newPrice = (int) (Double.parseDouble((totalAmountTextView.getText().toString()).replaceAll("[^\\d.]", "")) - cartProduct.getPrice() * ResourcesSingleton.getInstance().getCart()[cartProduct.getId()]);
 
             // Remove from database
             ResourcesSingleton.getInstance().removeProduct(cartProduct.getId());
 
-            totalAmountTextView.setText(String.format("$%.2f", newPrice));
+            totalAmountTextView.setText(Integer.toString(newPrice));
             notifyItemRemoved(position);
             notifyItemRangeChanged(position, cartProducts.size());
             if (cartProducts.size() == 0) {
@@ -298,24 +290,11 @@ public class CartFragment extends Fragment {
                 this.cartItemDeleteText = row.findViewById(R.id.cart_item_delete_text);
                 cartItemDeleteText.setPaintFlags(Paint.UNDERLINE_TEXT_FLAG);
 
-                cartImageProductRemove.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        removeProductPrice();
-                    }
-                });
-                cartImageProductAdd.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        addProductPrice();
-                    }
-                });
-                cartItemDeleteText.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if(mCartAdapter != null){
-                            mCartAdapter.removeItem(getAdapterPosition());
-                        }
+                cartImageProductRemove.setOnClickListener(v -> removeProductPrice());
+                cartImageProductAdd.setOnClickListener(v -> addProductPrice());
+                cartItemDeleteText.setOnClickListener(v -> {
+                    if(mCartAdapter != null){
+                        mCartAdapter.removeItem(getAdapterPosition());
                     }
                 });
             }
@@ -334,11 +313,11 @@ public class CartFragment extends Fragment {
                     Product cartProduct = mCartAdapter.cartProducts.get(getAdapterPosition());
                     ResourcesSingleton.getInstance().updateQuantity(cartProduct.getId(), quantity);
 
-                    double productPrice = Double.parseDouble((cartItemPrice.getText().toString()).replaceAll("[^\\d.]", ""));
+                    int productPrice = (int) Double.parseDouble((cartItemPrice.getText().toString()).replaceAll("[^\\d.]", ""));
 
-                    double oldTotal = Double.parseDouble((totalAmountTextView.getText().toString()).replaceAll("[^\\d.]", ""));
-                    double newTotal = oldTotal - productPrice;
-                    totalAmountTextView.setText(String.format("$%.2f", newTotal));
+                    int oldTotal = (int) Double.parseDouble((totalAmountTextView.getText().toString()).replaceAll("[^\\d.]", ""));
+                    int newTotal = oldTotal - productPrice;
+                    totalAmountTextView.setText(String.valueOf(newTotal));
 
 
                     mCartAdapter.cartProducts.set(getAdapterPosition(), cartProduct);
@@ -353,11 +332,11 @@ public class CartFragment extends Fragment {
                 Product cartProduct = mCartAdapter.cartProducts.get(getAdapterPosition());
                 ResourcesSingleton.getInstance().updateQuantity(cartProduct.getId(), quantity);
 
-                double productPrice = Double.parseDouble((cartItemPrice.getText().toString()).replaceAll("[^\\d.]", ""));
+                int productPrice = Integer.parseInt(cartItemPrice.getText().toString());
 
-                double oldTotal = Double.parseDouble((totalAmountTextView.getText().toString()).replaceAll("[^\\d.]", ""));
-                double newTotal = oldTotal + productPrice;
-                totalAmountTextView.setText(String.format("$%.2f", newTotal));
+                int oldTotal = Integer.parseInt(totalAmountTextView.getText().toString());
+                int newTotal = oldTotal + productPrice;
+                totalAmountTextView.setText(String.valueOf(newTotal));
 
 
                 mCartAdapter.cartProducts.set(getAdapterPosition(), cartProduct);
