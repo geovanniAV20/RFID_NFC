@@ -690,7 +690,7 @@ public class MainActivity extends AppCompatActivity {
         adapter = new ViewPagerAdapter(getFragmentManager(), arrayFragments, arrayTitulos);
         vpContenido.setAdapter(adapter);
 
-        tabLayout.setupWithViewPager(vpContenido);
+        //tabLayout.setupWithViewPager(vpContenido);
 
     }
 
