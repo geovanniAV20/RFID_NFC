@@ -34,7 +34,7 @@ public class MenuListFragment extends ListFragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        this.commonProducts = ResourcesSingleton.getInstance().getCommonFood();
+        this.commonProducts = ResourcesSingleton.getInstance().getProducts();
         productArrayAdapter = new ProductAdapter(this.getActivity(), R.layout.fragment_menu_list, new ArrayList<>());
         setListAdapter(productArrayAdapter);
         for (Product p: commonProducts) {

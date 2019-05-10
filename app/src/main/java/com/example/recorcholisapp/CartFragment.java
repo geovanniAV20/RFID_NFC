@@ -27,10 +27,19 @@ import com.amulyakhare.textdrawable.TextDrawable;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -44,11 +53,10 @@ public class CartFragment extends Fragment {
 
     private RecyclerView recyclerCart;
     private LinearLayout noProductsLinearLayout;
-    private TextView totalTextView;
     private TextView totalAmountTextView;
     private CartAdapter mCartAdapter;
-    public TextView currentMoneyText;
-    public int updatedMoney;
+    public TextView currentTicketsText;
+    public int updatedTickets;
 
     private Paint p = new Paint();
 
@@ -60,7 +68,6 @@ public class CartFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View result = inflater.inflate(R.layout.fragment_cart, container, false);
 
         firebaseAuth = FirebaseAuth.getInstance();
@@ -69,18 +76,18 @@ public class CartFragment extends Fragment {
             startActivity(new Intent(container.getContext(), Login.class));
         }
 
-        databaseReference = FirebaseDatabase.getInstance().getReference();
-        FirebaseUser user = firebaseAuth.getCurrentUser();
+        databaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
 
         recyclerCart = result.findViewById(R.id.recycler_cart_products);
         recyclerCart.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerCart.setHasFixedSize(true);
         noProductsLinearLayout = result.findViewById(R.id.linear_layout_no_products_instructions);
-        totalTextView = result.findViewById(R.id.text_cart_total_title);
         totalAmountTextView = result.findViewById(R.id.text_cart_total_number);
 
-        currentMoneyText = result.findViewById(R.id.text_cart_current_money_number);
-        currentMoneyText.setText(Integer.toString(((MainActivity) getActivity()).currentMoney));
+        currentTicketsText = result.findViewById(R.id.text_cart_current_money_number);
+
+
+        currentTicketsText.setText(Integer.toString(((MainActivity) getActivity()).currentTickets));
 
         Button readMoneyButton = result.findViewById(R.id.button_cart_read_card);
         readMoneyButton.setOnClickListener(view -> ((MainActivity)getActivity()).onReadMoney(readMoneyButton));
@@ -100,22 +107,23 @@ public class CartFragment extends Fragment {
                 totalAmountTextView.setText(Integer.toString(price));
                 mCartAdapter = new CartAdapter(products);
                 recyclerCart.setAdapter(mCartAdapter);
-                if(price > ((MainActivity)(CartFragment.this.getActivity())).currentMoney) {
-                    if(((MainActivity)(CartFragment.this.getActivity())).currentMoney == 0){
+                if(price > ((MainActivity)(CartFragment.this.getActivity())).currentTickets) {
+                    if(((MainActivity)(CartFragment.this.getActivity())).currentTickets == 0){
                         Toast.makeText(getActivity(), "No tienes tickets o intentalo de nuevo", Toast.LENGTH_LONG).show();
-                        saveUserInformation(container, updatedMoney);
+                        //saveUserInformation(container, updatedTickets);
                     }else {
                         Toast.makeText(getActivity(), "No tienes tickets suficientes", Toast.LENGTH_LONG).show();
-                        saveUserInformation(container, updatedMoney);
+                        //saveUserInformation(container, updatedTickets);
                     }
 
                 } else {
                     //hacer cobro
-                    updatedMoney = ((MainActivity)(CartFragment.this.getActivity())).currentMoney - (int)price;
-                    saveUserInformation(container, updatedMoney);
-                    int depositMoney = - (int)price;
-                    ((MainActivity)(CartFragment.this.getActivity())).setDepositMoney(depositMoney);
+                    updatedTickets = ((MainActivity)(CartFragment.this.getActivity())).currentTickets - price;
+                    int depositTickets = -price;
+                    ((MainActivity)(CartFragment.this.getActivity())).setDepositTickets(depositTickets);
                     ((MainActivity)(CartFragment.this.getActivity())).onDeposit(payButton);
+                    currentTicketsText.setText(Integer.toString(updatedTickets));
+                    saveUserInformation(container, updatedTickets);
                 }
 
             } else {
@@ -126,8 +134,20 @@ public class CartFragment extends Fragment {
         return result;
     }
 
-    private void saveUserInformation(ViewGroup container, int updatedMoney){
-        UserInformation userInformation = new UserInformation(0.0, updatedMoney);
+    private void saveUserInformation(ViewGroup container, int updatedTickets){
+        Map<String, String> data = new HashMap<>();
+
+        Date date = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        String dateF = formatter.format(date);
+
+        data.put("Fecha", dateF);
+        data.put("Dispositivo", "App");
+        data.put("Tipo", "Deposito");
+        data.put("valorSaldo", Double.toString(((MainActivity) getActivity()).currentMoney));
+        data.put("valorTickets", Integer.toString(updatedTickets));
+
+        UserInformation userInformation = new UserInformation((((MainActivity) getActivity()).currentMoney), updatedTickets, data);
 
         FirebaseUser user = firebaseAuth.getCurrentUser();
 
@@ -151,7 +171,8 @@ public class CartFragment extends Fragment {
             totalAmountTextView.setText(Integer.toString(price));
             mCartAdapter = new CartAdapter(products);
             recyclerCart.setAdapter(mCartAdapter);
-            currentMoneyText.setText(Integer.toString(((MainActivity) getActivity()).currentMoney));
+
+            currentTicketsText.setText(Integer.toString(((MainActivity) getActivity()).currentTickets));
             initSwipe();
             hideInstructions();
         } else {
@@ -162,7 +183,7 @@ public class CartFragment extends Fragment {
 
     public void removeProducts() {
         if(mCartAdapter != null && recyclerCart != null) {
-            currentMoneyText.setText(updatedMoney);
+            currentTicketsText.setText(updatedTickets);
             mCartAdapter = new CartAdapter(new LinkedList<>());
             recyclerCart.setAdapter(mCartAdapter);
             showInstructions();

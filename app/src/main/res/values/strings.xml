@@ -6,9 +6,9 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="warning_nfc_is_off">NFC está actualmente desactivado!</string>
-    <string name="turn_on_nfc">La aplicación no puede correr si NFC está deshabilitado. Por favor activar NFC en Settings y luego utilice el botón back para regresar a esta app.</string>
-    <string name="instrucciones"> Acercar el dispositivo Android a un tag Mifare para leer su UID y tipo.</string>
+    <string name="warning_nfc_is_off">Tu NFC está actualmente desactivado!</string>
+    <string name="turn_on_nfc">La aplicación no puede correr si el NFC está deshabilitado. Por favor activar el NFC en Settings.</string>
+    <string name="instrucciones"> Acercar un tag Mifare al dispositivo Android para leer su UID y tipo.</string>
     <string name="tag_UID">" UID del Tag: "</string>
     <string name="card_type">" Tipo de Tarjeta: "</string>
     <string name="autenticate_label">  AUTENTIFICACIÓN:</string>
@@ -23,11 +23,11 @@
     <string name="leer_bloque_button">Leer Bloque</string>
     <string name="escribir_bloque_button">Escribir Bloque</string>
     <string name="ready_to_authenticate">Listo para autentificar un sector del tag Mifare!</string>
-    <string name="ready_to_authenticate_instructions">Acerque su dispositivo Android a un tag Mifare para autentificar el sector seleccionado con la llave seleccionada.</string>
+    <string name="ready_to_authenticate_instructions">Acerque un tag Mifare a su dispositivo para autentificar el sector seleccionado con la llave seleccionada.</string>
     <string name="ready_to_write">Listo para depositar al tag!</string>
-    <string name="ready_to_write_instructions">Acerque su dispositivo Android a un tag para depositar el dinero ingresado</string>
+    <string name="ready_to_write_instructions">Acerque un tag a su dispositivo para depositar el dinero ingresado</string>
     <string name="ready_to_read">Listo para leer el monedero!</string>
-    <string name="ready_to_read_instructions">Acerque su dispositivo Android a un tag compatible para ver el saldo disponible</string>
+    <string name="ready_to_read_instructions">Acerque un tag compatible a su dispositivo Android para ver el saldo disponible</string>
     <string name="menu_about">Acerca de Mifare Control</string>
     <string name="menu_help">Ayuda</string>
 

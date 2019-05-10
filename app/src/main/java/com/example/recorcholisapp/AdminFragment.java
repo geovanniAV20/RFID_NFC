@@ -15,6 +15,12 @@ import android.widget.Toast;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -61,7 +67,10 @@ public class AdminFragment extends Fragment implements View.OnClickListener{
         deposit.setOnClickListener(this);
         changeKeys.setOnClickListener(this);
         authBttn.setOnClickListener(this);
-        mRadioGroup = view.findViewById(R.id.rBtnGrp);
+
+        firebaseAuth = FirebaseAuth.getInstance();
+
+        databaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
     }
 
     public void onReadMoney(View arg0)
@@ -75,7 +84,6 @@ public class AdminFragment extends Fragment implements View.OnClickListener{
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.depositBttn:
-                ((MainActivity)getActivity()).selectedKey= getCheckBox();
                 if(mDatatoWrite.getText().toString().equals("")){
                     Toast.makeText(getActivity(),
                             "Introducir cantidad a depositar!",
@@ -83,19 +91,17 @@ public class AdminFragment extends Fragment implements View.OnClickListener{
                 }else {
                     ((MainActivity) getActivity()).setDepositMoney(Integer.parseInt(mDatatoWrite.getText().toString()));
                     ((MainActivity)getActivity()).onDeposit(v);
-                    saveUserInformation(getActivity(), Integer.valueOf(mDatatoWrite.getText().toString()));
+                    saveUserInformation(getActivity(), Double.valueOf(mDatatoWrite.getText().toString()));
                 }
                 break;
 
             case R.id.keyBttn:
-                ((MainActivity)getActivity()).selectedKey= getCheckBox();
                 ((MainActivity)getActivity()).newHexKeyA = mHexKeyA.getText().toString();
                 ((MainActivity)getActivity()).newHexKeyB = mHexKeyB.getText().toString();
                 ((MainActivity)getActivity()).changeKeys(v);
                 break;
 
             case R.id.authBttn:
-                ((MainActivity)getActivity()).selectedKey= getCheckBox();
                 ((MainActivity)getActivity()).hexKeyA = mHexKeyA.getText().toString();
                 ((MainActivity)getActivity()).hexKeyB = mHexKeyB.getText().toString();
                 ((MainActivity)getActivity()).Aunthenticate(v);
@@ -104,8 +110,21 @@ public class AdminFragment extends Fragment implements View.OnClickListener{
 
     }
 
-    private void saveUserInformation(Context context, int updatedMoney){
-        UserInformation userInformation = new UserInformation(0.0, updatedMoney);
+    private void saveUserInformation(Context context, double updatedMoney){
+
+        Map<String, String> data = new HashMap<>();
+
+        Date date = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        String dateF = formatter.format(date);
+
+        data.put("Fecha", dateF);
+        data.put("Dispositivo", "App");
+        data.put("Tipo", "Deposito");
+        data.put("valorSaldo", Double.toString(updatedMoney));
+        data.put("valorTickets", Integer.toString(((MainActivity) getActivity()).currentTickets));
+
+        UserInformation userInformation = new UserInformation(updatedMoney, ((MainActivity) getActivity()).currentTickets, data);
 
         FirebaseUser user = firebaseAuth.getCurrentUser();
 
@@ -113,18 +132,5 @@ public class AdminFragment extends Fragment implements View.OnClickListener{
         Toast.makeText(context, "Información guardada", Toast.LENGTH_SHORT).show();
     }
 
-    public String getCheckBox(){
-        String value = "";
-        switch (mRadioGroup.getCheckedRadioButtonId()){
-            case R.id.radioButtonkeyA:
-                value = "A";
-                break;
-
-            case R.id.radioButtonkeyB:
-                value = "B";
-                break;
-        }
-        return value;
-    }
 }
 

@@ -45,39 +45,7 @@
             android:hint="Key B"
             android:inputType="textPersonName" />
 
-        <LinearLayout
-            android:id="@+id/linearLayout4"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:orientation="horizontal">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Seleccionar Llave:" />
-
-            <RadioGroup
-                android:id="@+id/rBtnGrp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <RadioButton
-                    android:id="@+id/radioButtonkeyA"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Key A" />
-
-                <RadioButton
-                    android:id="@+id/radioButtonkeyB"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Key B" />
-            </RadioGroup>
-
-
-        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

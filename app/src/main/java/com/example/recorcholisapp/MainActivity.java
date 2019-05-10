@@ -26,10 +26,16 @@ import android.widget.Toast;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -59,23 +65,26 @@ public class MainActivity extends AppCompatActivity {
     private TextView mTextMessage;
 
     int sectorNum = 01;
-    String blockNum="04";
-    String inverseBlockNum = "FB";
+    String blockNumTickets="04";
+    String blockNumSaldo="05";
+    //5 saldo y 4 para tickets y llave A
+    String inverseBlockNumTickets = "FB";
+    String inverseBlockNumSaldo = "FA";
+    //ver si hay que cambiar esto
     String keysNum = "07";
 
     public String hexKeyA = "FFFFFFFFFFFF";
     public String hexKeyB = "FFFFFFFFFFFF";
     public String newHexKeyA = "";
     public String newHexKeyB = "";
-    public int depositMoney = 0;
-    public int currentMoney=0;
+    public double depositMoney = 0;
+    public int depositTickets = 0;
+    public double currentMoney=0;
+    public int currentTickets=0;
     public boolean read = false;
 
     public CartFragment cartFragment;
     public boolean isInCurrentDeposit = false;
-
-
-    public String selectedKey = "";
 
     boolean keys = false;
 
@@ -98,10 +107,12 @@ public class MainActivity extends AppCompatActivity {
 
         mHexKeyA = findViewById(R.id.keyAEditText);
         mHexKeyB = findViewById(R.id.keyBEditText);
-        mRadioGroup = findViewById(R.id.rBtnGrp);
         mDatatoWrite = findViewById(R.id.chargeEditText);
         tabLayout = findViewById(R.id.navigation);
         vpContenido = findViewById(R.id.vpContenido);
+
+        firebaseAuth = FirebaseAuth.getInstance();
+        databaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
 
         cargarFragmentos();
         cargarTitulos();
@@ -180,50 +191,58 @@ public class MainActivity extends AppCompatActivity {
             {
                 try {
                     mfc.connect();
-                    boolean auth;
+                    boolean authTicketsA;
+                    boolean authSaldoA;
+                    boolean authTicketsB;
+                    boolean authSaldoB;
                     String hexkey;
 
-                    int sector = mfc.blockToSector(Integer.parseInt(blockNum));
+                    int sectorTickets = mfc.blockToSector(Integer.parseInt(blockNumTickets));
+                    int sectorSaldo = mfc.blockToSector(Integer.parseInt(blockNumSaldo));
                     byte[] datakey;
 
-
-                    if (selectedKey.equals("A")){
-                        hexkey = hexKeyA;
-                        datakey = hexStringToByteArray(hexkey);
-                        auth = mfc.authenticateSectorWithKeyA(sector, datakey);
-                    }
-                    else if (selectedKey.equals("B")){
-                        hexkey = hexKeyB;
-                        datakey = hexStringToByteArray(hexkey);
-                        auth = mfc.authenticateSectorWithKeyB(sector, datakey);
-                    }
-                    else {
+                    //llave A
+                    hexkey = hexKeyA;
+                    datakey = hexStringToByteArray(hexkey);
+                    authTicketsA = mfc.authenticateSectorWithKeyA(sectorTickets, datakey);
+                    authSaldoA = mfc.authenticateSectorWithKeyA(sectorSaldo, datakey);
+                    //llave B
+                    hexkey = hexKeyB;
+                    datakey = hexStringToByteArray(hexkey);
+                    authTicketsB = mfc.authenticateSectorWithKeyB(sectorTickets, datakey);
+                    authSaldoB = mfc.authenticateSectorWithKeyB(sectorSaldo, datakey);
+                    /*
                         Toast.makeText(this,
                                 "Primero necesitas auntenticar el tag!",
                                 Toast.LENGTH_LONG).show();
                         mfc.close();
-                        return;
-                    }
+                        return;*/
 
-                    if(auth){
-                        int bloque =Integer.parseInt(blockNum);
-                        byte[] dataread = mfc.readBlock(bloque);
+                    if(authTicketsA && authSaldoA && authTicketsB && authSaldoB){
+                        int bloqueTickets =Integer.parseInt(blockNumTickets);
+                        int bloqueSaldo =Integer.parseInt(blockNumSaldo);
+                        byte[] datareadTickets = mfc.readBlock(bloqueTickets);
+                        byte[] datareadSaldo = mfc.readBlock(bloqueSaldo);
 
-                        String blockread = getHexString(dataread, dataread.length);
-                        Log.i(TAG, "Bloque Leido: " + blockread);
-                        currentMoney = Integer.parseInt(hexToDecimal(blockread));
-                        saveUserInformation(currentMoney);
+                        String blockreadTickets = getHexString(datareadTickets, datareadTickets.length);
+                        String blockreadSaldo = getHexString(datareadSaldo, datareadSaldo.length);
+                        Log.i(TAG, "Bloque Leido: " + blockreadTickets);
+                        Log.i(TAG, "Bloque Leido: " + blockreadSaldo);
+
+                        currentTickets = Integer.parseInt(hexToDecimal(blockreadTickets));
+                        currentMoney = Integer.parseInt(hexToDecimal(blockreadSaldo));
+                        //saveUserInformation(currentTickets, currentMoney);
 
                         mTagDialog.cancel();
 
                         if(cartFragment != null) {
-                            cartFragment.currentMoneyText.setText(Integer.toString(Integer.parseInt(hexToDecimal(blockread))));
+                            cartFragment.currentTicketsText.setText(Integer.toString(Integer.parseInt(hexToDecimal(blockreadTickets))));
                         }
 
                         AlertDialog.Builder builder = new AlertDialog.Builder(
                                 this)
                                 .setTitle("Saldo")
-                                .setMessage("Los tickets en esta tarjeta son: " + hexToDecimal(blockread))
+                                .setMessage("Los tickets en esta tarjeta son: " + hexToDecimal(blockreadTickets) + "\n" + "El saldo es: " + hexToDecimal(blockreadSaldo))
                                 .setCancelable(true)
                                 .setNegativeButton("Cancelar",
                                         (dialog, id) -> dialog.cancel())
@@ -232,6 +251,7 @@ public class MainActivity extends AppCompatActivity {
                         read = true;
                         mTagDialog = builder.create();
                         mTagDialog.show();
+                        saveUserInformation();
                     }else{
                         Toast.makeText(this,
                                 "FALLO en lectura de Bloque debido a autentificación fallida.",
@@ -246,8 +266,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void saveUserInformation( int updatedMoney){
-        UserInformation userInformation = new UserInformation(0.0, updatedMoney);
+    private void saveUserInformation(){
+        Map<String, String> data = new HashMap<>();
+
+        Date date = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        String dateF = formatter.format(date);
+
+        data.put("Fecha", dateF);
+        data.put("Dispositivo", "App");
+        data.put("Tipo", "Deposito");
+        data.put("valorSaldo", Double.toString(currentMoney));
+        data.put("valorTickets", Integer.toString(currentTickets));
+
+        UserInformation userInformation = new UserInformation(currentMoney, currentTickets, data);
 
         FirebaseUser user = firebaseAuth.getCurrentUser();
 
@@ -263,55 +295,71 @@ public class MainActivity extends AppCompatActivity {
 
             try {
                 mfc.connect();
-                boolean auth;
+                boolean authTicketsA;
+                boolean authSaldoA;
+                boolean authTicketsB;
+                boolean authSaldoB;
                 String hexkey;
-                int bloque;
-                int sector;
+                int bloqueTickets;
+                int bloqueSaldo;
+                int sectorTickets;
+                int sectorSaldo;
                 if(keys){
-                    bloque = Integer.parseInt(keysNum);
+                    bloqueTickets = Integer.parseInt(keysNum);
+                    bloqueSaldo = Integer.parseInt(keysNum);
                 }else {
-                    bloque = Integer.parseInt(blockNum);
+                    bloqueTickets = Integer.parseInt(blockNumTickets);
+                    bloqueSaldo = Integer.parseInt(blockNumSaldo);
                 }
 
-                sector = mfc.blockToSector(bloque);
+                sectorTickets = mfc.blockToSector(bloqueTickets);
+                sectorSaldo = mfc.blockToSector(bloqueSaldo);
                 byte[] datakey;
 
-                if (selectedKey.equals("A")){
-                    hexkey = hexKeyA;
-                    datakey = hexStringToByteArray(hexkey);
-                    auth = mfc.authenticateSectorWithKeyA(sector, datakey);
-                }
-                else if (selectedKey.equals("B")){
-                    hexkey = hexKeyB;
-                    datakey = hexStringToByteArray(hexkey);
-                    auth = mfc.authenticateSectorWithKeyB(sector, datakey);
-                }
-                else {
-                    Toast.makeText(this,
+                hexkey = hexKeyA;
+                datakey = hexStringToByteArray(hexkey);
+                authTicketsA = mfc.authenticateSectorWithKeyA(sectorTickets, datakey);
+                authSaldoA = mfc.authenticateSectorWithKeyA(sectorSaldo, datakey);
+
+                hexkey = hexKeyB;
+                datakey = hexStringToByteArray(hexkey);
+                authTicketsB = mfc.authenticateSectorWithKeyB(sectorTickets, datakey);
+                authSaldoB = mfc.authenticateSectorWithKeyB(sectorSaldo, datakey);
+
+                   /* Toast.makeText(this,
                             "Necesitas auntenticar el tag!",
                             Toast.LENGTH_LONG).show();
                     mfc.close();
-                    return;
-                }
+                    return;*/
 
-                if(auth){
+
+                if(authTicketsA && authSaldoA && authTicketsB && authSaldoB){
                     if(keys){
-                        String strdata = newHexKeyA + "FF078069"+newHexKeyB;
-                        byte[] datatowrite = hexStringToByteArray(strdata);
-                        mfc.writeBlock(bloque, datatowrite);
+                        //aqui igual y se cambiar el strdata
+                        String strdata = newHexKeyA + "FF078069" + newHexKeyB;
+                        byte[] datatowriteTickets = hexStringToByteArray(strdata);
+                        byte[] datatowriteSaldo = hexStringToByteArray(strdata);
+                        mfc.writeBlock(bloqueTickets, datatowriteTickets);
+                        mfc.writeBlock(bloqueSaldo, datatowriteSaldo);
 
                         Toast.makeText(this,
                                 "Cambio de llaves exitoso.",
                                 Toast.LENGTH_LONG).show();
                     }else {
                         if(read){
-                            int moneyFinal = depositMoney + currentMoney ;
-                            String strdata = decimalToHex(moneyFinal);
+                            int ticketsFinal = depositTickets + currentTickets;
+                            double moneyFinal = depositMoney + currentMoney ;
+                            String strdataTickets = decimalToHexTickets(ticketsFinal);
+                            //igual se puede necesitar un metodo para double to hex
+                            String strdataSaldo = decimalToHexSaldo((int) moneyFinal);
                             Log.e("DEBUG_TAG", "Final money: " + moneyFinal);
 
-                            byte[] datatowrite = hexStringToByteArray(strdata);
-                            mfc.writeBlock(bloque, datatowrite);
-                            currentMoney = 0;
+                            byte[] datatowriteTickets = hexStringToByteArray(strdataTickets);
+                            byte[] datatowriteSaldo = hexStringToByteArray(strdataSaldo);
+
+                            mfc.writeBlock(bloqueTickets, datatowriteTickets);
+                            mfc.writeBlock(bloqueSaldo, datatowriteSaldo);
+                            //currentMoney = 0;
 
                             isInCurrentDeposit = false;
                             ResourcesSingleton.getInstance().clearCart();
@@ -323,7 +371,9 @@ public class MainActivity extends AppCompatActivity {
 
                             Toast.makeText(this,
                                     "Deposito/Pago exitoso.",
-                                    Toast.LENGTH_LONG).show();
+                                    Toast.LENGTH_SHORT).show();
+
+                            //saveUserInformation();
                         }else {
                             Toast.makeText(this,
                                     "Primero debes leer el saldo!.",
@@ -358,31 +408,23 @@ public class MainActivity extends AppCompatActivity {
 
             try {
                 mfc.connect();
-                boolean auth;
+                boolean authA;
+                boolean authB;
+
                 String hexkey;
                 int sector = sectorNum;
                 byte[] datakey;
 
+                hexkey = hexKeyA;
+                datakey = hexStringToByteArray(hexkey);
+                authA = mfc.authenticateSectorWithKeyA(sector, datakey);
 
-                if (selectedKey.equals("A")){
-                    hexkey = hexKeyA;
-                    datakey = hexStringToByteArray(hexkey);
-                    auth = mfc.authenticateSectorWithKeyA(sector, datakey);
-                }
-                else if (selectedKey.equals("B")){
-                    hexkey = hexKeyB;
-                    datakey = hexStringToByteArray(hexkey);
-                    auth = mfc.authenticateSectorWithKeyB(sector, datakey);
-                }
-                else {
-                    Toast.makeText(this,
-                            "°Seleccionar llave A o B!",
-                            Toast.LENGTH_LONG).show();
-                    mfc.close();
-                    return;
-                }
+                hexkey = hexKeyB;
+                datakey = hexStringToByteArray(hexkey);
+                authB = mfc.authenticateSectorWithKeyB(sector, datakey);
 
-                if(auth){
+
+                if(authA && authB){
                     Toast.makeText(this,
                             "Autentificación de sector EXITOSA.",
                             Toast.LENGTH_LONG).show();
@@ -533,7 +575,7 @@ public class MainActivity extends AppCompatActivity {
         return val+"";
     }
 
-    public String decimalToHex(int decimal){
+    public String decimalToHexTickets(int decimal){
         String numDec="";
         String hex = Integer.toHexString(decimal)+"";
         String zeros="";
@@ -547,9 +589,30 @@ public class MainActivity extends AppCompatActivity {
         }else {
             inverseHex = "FFFFFFFF";
         }
-        String sectorNumS = blockNum;
-        String sectorNumInv = inverseBlockNum;
-        numDec = hex + inverseHex + hex + sectorNumS + sectorNumInv + sectorNumS + sectorNumInv;
+        String sectorNumSTickets = blockNumTickets;
+        String sectorNumInvTickets = inverseBlockNumTickets;
+        numDec = hex + inverseHex + hex + sectorNumSTickets + sectorNumInvTickets + sectorNumSTickets + sectorNumInvTickets;
+        return numDec;
+
+    }
+
+    public String decimalToHexSaldo(int decimal){
+        String numDec="";
+        String hex = Integer.toHexString(decimal)+"";
+        String zeros="";
+        for(int i=0; i< (8-hex.length());i++){
+            zeros+="0";
+        }
+        hex = zeros + hex;
+        String inverseHex = "";
+        if(decimal != 0){
+            inverseHex = Integer.toHexString(-1*decimal-1);
+        }else {
+            inverseHex = "FFFFFFFF";
+        }
+        String sectorNumSSaldo = blockNumSaldo;
+        String sectorNumInvSaldo = inverseBlockNumSaldo;
+        numDec = hex + inverseHex + hex + sectorNumSSaldo + sectorNumInvSaldo + sectorNumSSaldo + sectorNumInvSaldo;
         return numDec;
 
     }
@@ -578,7 +641,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void onDeposit(View arg0)
     {
-
         enableTagWriteMode();
         keys = false;
 
@@ -594,8 +656,12 @@ public class MainActivity extends AppCompatActivity {
         mTagDialog.show();
     }
 
-    public void setDepositMoney(int money){
+    public void setDepositMoney(double money){
         depositMoney = money;
+    }
+
+    public void setDepositTickets(int tickets){
+        depositTickets = tickets;
     }
 
     public void changeKeys(View arg0)

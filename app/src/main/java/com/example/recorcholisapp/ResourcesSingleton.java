@@ -76,7 +76,7 @@ public class ResourcesSingleton {
         return mInstance;
     }
 
-    public ArrayList<Product> getCommonFood() {
+    public ArrayList<Product> getProducts() {
         return this.products;
     }
 
