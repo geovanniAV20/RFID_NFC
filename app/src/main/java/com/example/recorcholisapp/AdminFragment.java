@@ -35,11 +35,8 @@ public class AdminFragment extends Fragment implements View.OnClickListener{
     EditText mHexKeyB;
     EditText mDatatoWrite;
     Button deposit;
-    Button changeKeys;
+    Button readSaldo;
     Button authBttn;
-    RadioGroup mRadioGroup;
-
-    int sectorNum = 29;
 
     public AdminFragment() {
         // Required empty public constructor
@@ -62,20 +59,18 @@ public class AdminFragment extends Fragment implements View.OnClickListener{
         mHexKeyA = view.findViewById(R.id.keyAEditText);
         mHexKeyB = view.findViewById(R.id.keyBEditText);
         deposit = view.findViewById(R.id.depositBttn);
-        changeKeys = view.findViewById(R.id.keyBttn);
         authBttn = view.findViewById(R.id.authBttn);
+        readSaldo = view.findViewById(R.id.moneyBttn);
         deposit.setOnClickListener(this);
-        changeKeys.setOnClickListener(this);
         authBttn.setOnClickListener(this);
 
         firebaseAuth = FirebaseAuth.getInstance();
 
-        databaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
+        databaseReference = FirebaseDatabase.getInstance().getReference().child("Cards").child("data").push();
     }
 
     public void onReadMoney(View arg0)
     {
-
         ((MainActivity)getActivity()).onReadMoney(arg0);
     }
 
@@ -91,14 +86,9 @@ public class AdminFragment extends Fragment implements View.OnClickListener{
                 }else {
                     ((MainActivity) getActivity()).setDepositMoney(Integer.parseInt(mDatatoWrite.getText().toString()));
                     ((MainActivity)getActivity()).onDeposit(v);
-                    saveUserInformation(getActivity(), Double.valueOf(mDatatoWrite.getText().toString()));
+                    double aux = (((MainActivity) getActivity()).currentMoney + Integer.parseInt(mDatatoWrite.getText().toString()));
+                    saveUserInformation(getActivity(), aux, Integer.parseInt(mDatatoWrite.getText().toString()));
                 }
-                break;
-
-            case R.id.keyBttn:
-                ((MainActivity)getActivity()).newHexKeyA = mHexKeyA.getText().toString();
-                ((MainActivity)getActivity()).newHexKeyB = mHexKeyB.getText().toString();
-                ((MainActivity)getActivity()).changeKeys(v);
                 break;
 
             case R.id.authBttn:
@@ -106,31 +96,40 @@ public class AdminFragment extends Fragment implements View.OnClickListener{
                 ((MainActivity)getActivity()).hexKeyB = mHexKeyB.getText().toString();
                 ((MainActivity)getActivity()).Aunthenticate(v);
                 break;
+
+            case R.id.moneyBttn:
+                ((MainActivity)getActivity()).onReadMoney(readSaldo);
+                break;
         }
 
     }
 
-    private void saveUserInformation(Context context, double updatedMoney){
+    private void saveUserInformation(Context context, double updatedMoney, int cantidad){
 
-        Map<String, String> data = new HashMap<>();
+        Map<String,String> data = new HashMap<String, String>();
+        //Map<String, Map<String, String>> card = new HashMap<String, Map<String, String>>();
+
+
+        String uuid = ((MainActivity) getActivity()).hexUID;
 
         Date date = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         String dateF = formatter.format(date);
 
+        data.put("Descripcion", "Deposito");
         data.put("Fecha", dateF);
-        data.put("Dispositivo", "App");
-        data.put("Tipo", "Deposito");
-        data.put("valorSaldo", Double.toString(updatedMoney));
-        data.put("valorTickets", Integer.toString(((MainActivity) getActivity()).currentTickets));
+        data.put("Maquina", "Kiosco");
+        data.put("Saldo", Integer.toString(cantidad));
+        data.put("Tickets", "0");
 
-        UserInformation userInformation = new UserInformation(updatedMoney, ((MainActivity) getActivity()).currentTickets, data);
+        //card.put(uuid, data);
 
         FirebaseUser user = firebaseAuth.getCurrentUser();
+        String userID = user.getUid();
+        UserInformation userInformation = new UserInformation(uuid, userID, updatedMoney, ((MainActivity) getActivity()).currentTickets, data);
 
         databaseReference.child(user.getUid()).setValue(userInformation);
         Toast.makeText(context, "Información guardada", Toast.LENGTH_SHORT).show();
     }
-
 }
 

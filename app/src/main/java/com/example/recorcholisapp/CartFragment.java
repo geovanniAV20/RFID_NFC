@@ -76,7 +76,7 @@ public class CartFragment extends Fragment {
             startActivity(new Intent(container.getContext(), Login.class));
         }
 
-        databaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
+        databaseReference = FirebaseDatabase.getInstance().getReference().child("Cards").child("data").push();
 
         recyclerCart = result.findViewById(R.id.recycler_cart_products);
         recyclerCart.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -110,10 +110,8 @@ public class CartFragment extends Fragment {
                 if(price > ((MainActivity)(CartFragment.this.getActivity())).currentTickets) {
                     if(((MainActivity)(CartFragment.this.getActivity())).currentTickets == 0){
                         Toast.makeText(getActivity(), "No tienes tickets o intentalo de nuevo", Toast.LENGTH_LONG).show();
-                        //saveUserInformation(container, updatedTickets);
                     }else {
                         Toast.makeText(getActivity(), "No tienes tickets suficientes", Toast.LENGTH_LONG).show();
-                        //saveUserInformation(container, updatedTickets);
                     }
 
                 } else {
@@ -123,7 +121,7 @@ public class CartFragment extends Fragment {
                     ((MainActivity)(CartFragment.this.getActivity())).setDepositTickets(depositTickets);
                     ((MainActivity)(CartFragment.this.getActivity())).onDeposit(payButton);
                     currentTicketsText.setText(Integer.toString(updatedTickets));
-                    saveUserInformation(container, updatedTickets);
+                    saveUserInformation(container, updatedTickets, price);
                 }
 
             } else {
@@ -134,22 +132,28 @@ public class CartFragment extends Fragment {
         return result;
     }
 
-    private void saveUserInformation(ViewGroup container, int updatedTickets){
-        Map<String, String> data = new HashMap<>();
+    private void saveUserInformation(ViewGroup container, int updatedTickets, int price){
+        Map<String,String> data = new HashMap<String, String>();
+        //Map<String, Map<String, String>> card = new HashMap<String, Map<String, String>>();
+
+
+        String uuid = ((MainActivity) getActivity()).hexUID;
 
         Date date = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         String dateF = formatter.format(date);
 
+        data.put("Descripcion", "Compra");
         data.put("Fecha", dateF);
-        data.put("Dispositivo", "App");
-        data.put("Tipo", "Deposito");
-        data.put("valorSaldo", Double.toString(((MainActivity) getActivity()).currentMoney));
-        data.put("valorTickets", Integer.toString(updatedTickets));
+        data.put("Maquina", "Kiosco");
+        data.put("Saldo", "0");
+        data.put("Tickets", Integer.toString(price));
 
-        UserInformation userInformation = new UserInformation((((MainActivity) getActivity()).currentMoney), updatedTickets, data);
+        //card.put(uuid, data);
 
         FirebaseUser user = firebaseAuth.getCurrentUser();
+        String userID = user.getUid();
+        UserInformation userInformation = new UserInformation(uuid, userID, ((MainActivity) getActivity()).currentMoney, ((MainActivity) getActivity()).currentTickets, data);
 
         databaseReference.child(user.getUid()).setValue(userInformation);
         Toast.makeText(container.getContext(), "Información guardada", Toast.LENGTH_SHORT).show();

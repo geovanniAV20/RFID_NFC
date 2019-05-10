@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean mAuthenticationMode = false;
     public boolean ReadUIDMode = true;
     String[][]mTechList;
+    public String hexUID;
 
     AlertDialog mTagDialog;
     RadioGroup mRadioGroup;
@@ -112,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
         vpContenido = findViewById(R.id.vpContenido);
 
         firebaseAuth = FirebaseAuth.getInstance();
-        databaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
+        databaseReference = FirebaseDatabase.getInstance().getReference().child("Cards").child("data").push();
 
         cargarFragmentos();
         cargarTitulos();
@@ -163,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
                 String tipotag;
                 String tamano;
                 byte[] tagUID = tagFromIntent.getId();
-                String hexUID = getHexString(tagUID, tagUID.length);
+                hexUID = getHexString(tagUID, tagUID.length);
                 Log.i(TAG, "Tag UID: " + hexUID);
 
 
@@ -231,7 +232,6 @@ public class MainActivity extends AppCompatActivity {
 
                         currentTickets = Integer.parseInt(hexToDecimal(blockreadTickets));
                         currentMoney = Integer.parseInt(hexToDecimal(blockreadSaldo));
-                        //saveUserInformation(currentTickets, currentMoney);
 
                         mTagDialog.cancel();
 
@@ -267,21 +267,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveUserInformation(){
-        Map<String, String> data = new HashMap<>();
+        Map<String,String> data = new HashMap<String, String>();
+        //Map<String, Map<String, String>> card = new HashMap<String, Map<String, String>>();
+
+
+        String uuid = hexUID;
 
         Date date = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         String dateF = formatter.format(date);
 
+        data.put("Descripcion", "Lectura");
         data.put("Fecha", dateF);
-        data.put("Dispositivo", "App");
-        data.put("Tipo", "Deposito");
-        data.put("valorSaldo", Double.toString(currentMoney));
-        data.put("valorTickets", Integer.toString(currentTickets));
+        data.put("Maquina", "Kiosco");
+        data.put("Saldo", "0");
+        data.put("Tickets", "0");
 
-        UserInformation userInformation = new UserInformation(currentMoney, currentTickets, data);
+        //card.put(uuid, data);
 
         FirebaseUser user = firebaseAuth.getCurrentUser();
+        String userID = user.getUid();
+        UserInformation userInformation = new UserInformation(uuid, userID, currentMoney, currentTickets, data);
 
         databaseReference.child(user.getUid()).setValue(userInformation);
         Toast.makeText(this, "Información guardada", Toast.LENGTH_SHORT).show();
@@ -304,6 +310,8 @@ public class MainActivity extends AppCompatActivity {
                 int bloqueSaldo;
                 int sectorTickets;
                 int sectorSaldo;
+
+
                 if(keys){
                     bloqueTickets = Integer.parseInt(keysNum);
                     bloqueSaldo = Integer.parseInt(keysNum);
@@ -311,6 +319,10 @@ public class MainActivity extends AppCompatActivity {
                     bloqueTickets = Integer.parseInt(blockNumTickets);
                     bloqueSaldo = Integer.parseInt(blockNumSaldo);
                 }
+
+                byte[] tagUID = tagFromIntent.getId();
+                hexUID = getHexString(tagUID, tagUID.length);
+
 
                 sectorTickets = mfc.blockToSector(bloqueTickets);
                 sectorSaldo = mfc.blockToSector(bloqueSaldo);
@@ -359,7 +371,10 @@ public class MainActivity extends AppCompatActivity {
 
                             mfc.writeBlock(bloqueTickets, datatowriteTickets);
                             mfc.writeBlock(bloqueSaldo, datatowriteSaldo);
-                            //currentMoney = 0;
+
+                            //PRUEBA para bug
+                            currentMoney = 0;
+                            currentTickets = 0;
 
                             isInCurrentDeposit = false;
                             ResourcesSingleton.getInstance().clearCart();
@@ -373,7 +388,6 @@ public class MainActivity extends AppCompatActivity {
                                     "Deposito/Pago exitoso.",
                                     Toast.LENGTH_SHORT).show();
 
-                            //saveUserInformation();
                         }else {
                             Toast.makeText(this,
                                     "Primero debes leer el saldo!.",
